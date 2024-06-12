@@ -5,7 +5,7 @@ headers = {'Content-Type': 'application/json'}
 
 def regist():
     date = {
-        "name":"",
+        "name":"M",
     }
 
     respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
@@ -20,8 +20,8 @@ def message():
     print(respons.json())
 
 def get():
-    name = ""
-    respons = requests.get(f"http://127.0.0.1:3000/api/get_messages/{name}",headers=headers)
+    name = "M"
+    respons = requests.get(f"http://127.0.0.1:3000/api/get_messages/{name}")
     print(respons.json())
 
 get()
