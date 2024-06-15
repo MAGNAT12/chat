@@ -1,11 +1,12 @@
 import json
 import requests
+import emoji
 
 headers = {'Content-Type': 'application/json'}
 
 def regist():
     date = {
-        "name":"M",
+        "name":"Magnat",
     }
 
     respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
@@ -13,14 +14,14 @@ def regist():
 
 def message():
     date = {
-        "name":"",
+        "name":"Magnat",
         "message":""
     }
     respons = requests.post("http://127.0.0.1:3000/api/send_message", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 def get():
-    name = "M"
+    name = "Magnat"
     respons = requests.get(f"http://127.0.0.1:3000/api/get_messages/{name}")
     print(respons.json())
 
