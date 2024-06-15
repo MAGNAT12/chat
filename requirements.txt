@@ -4,6 +4,7 @@ certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
+emoji==2.12.1
 Flask==3.0.3
 Flask-RESTful==0.3.10
 idna==3.7
@@ -14,5 +15,6 @@ pytz==2024.1
 req==1.0.0
 requests==2.31.0
 six==1.16.0
+typing_extensions==4.12.2
 urllib3==2.2.1
 Werkzeug==3.0.3
