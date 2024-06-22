@@ -62,14 +62,14 @@ class Get_messages(Resource):
         cursor.execute("SELECT id FROM users WHERE name = ?", (name,))
         user = cursor.fetchone()
         if not user:
-            return {'error': 'User does not exist'}, 400
+            return {'message': 'Нет таково пользователь в базе'}, 400
         cursor.execute("SELECT name, message FROM mes WHERE name = ?", (name,))
         messages = cursor.fetchall()
         if messages:
             message_list = [{'message': msg[1]} for msg in messages]
             return message_list
         else:
-            return {'message': 'No messages found'}, 200
+            return {'message': 'сообщение отправено'}, 200
 
 api.add_resource(Name_gmail, "/api/regist")
 api.add_resource(Send_message, "/api/send_message")
@@ -79,7 +79,7 @@ def delete_old_messages():
     while True:
         cursor.execute("DELETE FROM mes WHERE timestamp <= datetime('now', '-2 hours')")
         connect.commit()
-        time.sleep(3600)  # Проверять каждый час
+        time.sleep(3600)
 
 thread = threading.Thread(target=delete_old_messages, daemon=True)
 thread.start()
