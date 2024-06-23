@@ -70,26 +70,14 @@ class Get_messages(Resource):
         cursor.execute("SELECT id FROM users WHERE name = ?", (name,))
         user = cursor.fetchone()
         if not user:
-            return {'error': ''}, 400
+            return {'error': 'User does not exist'}, 400
         cursor.execute("SELECT name, message FROM mes WHERE name = ?", (name,))
         messages = cursor.fetchall()
         if messages:
             message_list = [{'message': msg[1]} for msg in messages]
             return message_list
         else:
-            return {'message': 'ненайде пользовотель'}, 200
-        
-    def post(self, name):
-        cursor.execute("SELECT id FROM users WHERE name = ?", (name,))
-        user = cursor.fetchone()
-        if not user:
-            return {'meassage': 'ненайде пользовотель'}, 400
-        cursor.execute("SELECT name, message FROM mes WHERE name = ?", (name,))
-        messages = cursor.fetchall()
-        for n in messages:
-            message_list = [{'message': msg[1]} for msg in messages]
-            return message_list
-        
+            return {'message': 'No messages found'}, 200
 
 api.add_resource(Name_gmail, "/api/regist")
 api.add_resource(Send_message, "/api/send_message")
