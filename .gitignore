@@ -1,2 +1,4 @@
 venv
 Chat.db
+__pycache__
+kesh.py
