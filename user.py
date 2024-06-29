@@ -1,6 +1,5 @@
 import json
 import requests
-import emoji
 import platform
 
 headers = {'Content-Type': 'application/json'}
