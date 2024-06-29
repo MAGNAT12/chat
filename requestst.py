@@ -45,5 +45,5 @@ def profil():
     respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
     print(respons.json())
 
-get()
+profil()
 

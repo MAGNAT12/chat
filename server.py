@@ -46,7 +46,8 @@ class Name_gmail(Resource):
         parser.add_argument('password', type=str)
         args = parser.parse_args()
         name = args["name"]
-        cursor.execute(f"SELECT `name` FROM `users` WHERE `name` = '{name}'")
+        gmail = args['gmail']
+        cursor.execute(f"SELECT `name`, `gmail` FROM `users` WHERE `name` = '{name}' AND `gmail` = '{gmail}'")
         data = cursor.fetchone()
         if data is None:
             name = args["name"]
@@ -57,7 +58,7 @@ class Name_gmail(Resource):
             connect.commit()
             return {'message': 'Вы зарегистрированны'}
         else:
-            return {'message': 'Вы уже зарегистрированны'}
+            return {'message': 'Ник уже зарегистрированн'}
         
 class Send_message(Resource):
     def post(self):
@@ -129,8 +130,14 @@ class Profil_user(Resource):
         cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password_ha))
         data = cursor.fetchone()
         if name in data:
-            cursor.execute('INSERT INTO devices (name_devices, name) VALUES (?, ?)', (name_devices, name))
-            connect.commit()
+            cursor.execute("SELECT name_devices FROM devices WHERE `name_devices` = ?", (name_devices,))
+            data = cursor.fetchone()
+            if data is None:
+                cursor.execute('INSERT INTO devices (name_devices, name) VALUES (?, ?)', (name_devices, name))
+                connect.commit()
+                return {"message":"Вы вошли в профиль"}
+            else:
+                return {"message":"Вы уже вошли в провель"}
         else:
             return {"message":"Зарегистрируйтесь"}
 
