@@ -108,10 +108,12 @@ class Get_messages(Resource):
             messages = cursor.fetchall()
             if messages:
                 messages_list = [{'name_sender': msg[0], 'message': msg[1]} for msg in messages]
-                return jsonify({'messages': messages_list})
+                return jsonify(messages_list)
             else:
                 return {'message': 'Сообщений не найдено'}
-                
+        else:
+            connect.close()
+            return {"message": "Зарегистрируйтесь"}
 
         
 class Profil_user(Resource):
