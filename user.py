@@ -12,7 +12,7 @@ def regist(name, gmail, password):
         "password":password,
     }
 
-    respons = requests.post("http://192.168.1.104:3000/api/regist", data=json.dumps(date), headers=headers)
+    respons = requests.post("http://:3000/api/regist", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 
@@ -22,14 +22,14 @@ def message(name, messag):
         "message":messag,
         "name_devices": name_devices
     }
-    respons = requests.post("http://192.168.1.104:3000/api/send_message", data=json.dumps(date), headers=headers)
+    respons = requests.post("http://:3000/api/send_message", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 def get():
     date = {
         "name_devices":name_devices
     }
-    respons = requests.get(f"http://192.168.1.104:3000/api/get_messages", data = json.dumps(date), headers=headers)
+    respons = requests.get(f"http://:3000/api/get_messages", data = json.dumps(date), headers=headers)
     print(respons.json())
 
 
@@ -41,7 +41,7 @@ def profil(name, gmail, password):
         "name_devices": name_devices
     }
 
-    respons = requests.post("http://192.168.1.104:3000/api/user", data=json.dumps(date), headers=headers)
+    respons = requests.post("http://:3000/api/user", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 if __name__ == "__main__":
