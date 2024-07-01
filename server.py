@@ -1,16 +1,26 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse
 import sqlite3
 import threading
 import time
 import hashlib
-
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'F:\\Python\\Chat\\video'
+app.config['ALLOWED_EXTENSIONS'] = {'mp4', 'avi', 'mkv'}
+def save_video_file(video_file):
+    filename = secure_filename(video_file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    video_file.save(filepath)
+    return filepath
+
 api = Api(app)
 token = ''
 list_token = ('1234567890')
-
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 connect = sqlite3.connect('Chat.db', check_same_thread=False)
 cursor = connect.cursor()
@@ -143,12 +153,24 @@ class Profil_user(Resource):
         else:
             return {"message":"Зарегистрируйтесь"}
 
+class Svideo(Resource):
+    def post(self):
+        if 'video' not in request.files:
+            return {'error': 'No file part'}, 400
+        video_file = request.files['video']
+        if video_file.filename == '' or not allowed_file(video_file.filename):
+            return {'error': 'Invalid file'}, 400
+        filename = secure_filename(video_file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        video_file.save(filepath)
+        return {'message': 'File uploaded successfully', 'file_path': filepath}, 200
+
 
 api.add_resource(Name_gmail, "/api/regist")
 api.add_resource(Send_message, "/api/send_message")
 api.add_resource(Get_messages, "/api/get_messages")
 api.add_resource(Profil_user, "/api/user")
-
+api.add_resource(Svideo, "/api/upload_video")
 
 def delete_old_messages():
     while True:
@@ -160,4 +182,4 @@ thread = threading.Thread(target=delete_old_messages, daemon=True)
 thread.start()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=3000, host="127.0.0.1")
+    app.run(debug=True, port=3000, host="192.168.1.104")
