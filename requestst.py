@@ -1,6 +1,15 @@
 import json
 import requests
 import platform
+import sqlite3
+
+connect = sqlite3.connect('Chat.db', check_same_thread=False)
+cursor = connect.cursor()
+cursor.execute(""""CREATE TABLE IF NOT EXISTS 
+            users(
+               name TEXT,
+               name_devices TEXT
+               )""")
 
 headers = {'Content-Type': 'application/json'}
 name_devices = platform.node()

@@ -7,8 +7,7 @@ import hashlib
 
 app = Flask(__name__)
 api = Api(app)
-token = ''
-list_token = ('1234567890')
+
 connect = sqlite3.connect('Chat.db', check_same_thread=False)
 cursor = connect.cursor()
 cursor.execute("""CREATE TABLE IF NOT EXISTS 
