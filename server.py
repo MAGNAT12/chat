@@ -4,6 +4,7 @@ import sqlite3
 import threading
 import time
 import hashlib
+import os
 
 app = Flask(__name__)
 api = Api(app)
@@ -13,26 +14,32 @@ cursor = connect.cursor()
 cursor.execute("""CREATE TABLE IF NOT EXISTS 
             users(
                id INTEGER PRIMARY KEY,
-               name TEXT,
-               gmail TEXT,
-               password TEXT
+               name TEXT NOT NULL,
+               gmail TEXT NOT NULL,
+               password TEXT NOT NULL
             )""")
 
 cursor.execute("""CREATE TABLE IF NOT EXISTS
                mes(
-               name_sender TEXT,
-               name TEXT,
-               message TEXT,
+               name_sender TEXT NOT NULL,
+               name TEXT NOT NULL,
+               message TEXT NOT NULL,
                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
 cursor.execute("""CREATE TABLE IF NOT EXISTS
                devices(
-               name TEXT,
-               name_devices TEXT
+               name TEXT NOT NULL,
+               name_devices TEXT NOT NULL
                )""")
 
 cursor.execute('PRAGMA journal_mode = OFF')
 connect.commit()
+
+
+journal_file = 'Chat.db-journal'
+
+if os.path.exists(journal_file):
+    os.remove(journal_file)
 
 class Name_gmail(Resource):
     def post(self):
@@ -52,9 +59,9 @@ class Name_gmail(Resource):
             password_ha = hashlib.sha3_512(password.encode()).hexdigest()
             cursor.execute("INSERT INTO users (name, gmail, password) VALUES (?, ?, ?);", (name, gmail, password_ha))
             connect.commit()
-            return {'message': 'Вы зарегистрированны'}
+            return {'message': 'Вы зарегистрированны'}, 200
         else:
-            return {'message': 'Ник уже зарегистрированн'}
+            return {'message': 'Ник уже зарегистрированн'}, 400
         
 class Send_message(Resource):
     def post(self):
