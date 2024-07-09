@@ -40,9 +40,9 @@ inpu.pack(pady=5)
 win.grid_columnconfigure(0, minsize=60)
 win.grid_columnconfigure(1, minsize=60)
 win.grid_columnconfigure(2, minsize=60)
-win.grid_columnconfigure(3, minsize=80)
-win.grid_columnconfigure(4, minsize=80)
-win.grid_columnconfigure(5, minsize=80)
+win.grid_columnconfigure(3, minsize=60)
+win.grid_columnconfigure(4, minsize=60)
+win.grid_columnconfigure(5, minsize=60)
 win.grid_rowconfigure(1, minsize=60)
 win.grid_rowconfigure(2, minsize=60)
 win.grid_rowconfigure(3, minsize=30)
@@ -67,5 +67,13 @@ def regist(name, gmail, password):
 
 
 
-
+# win.after(2000, lambda: inpu.config(text="Вход"))
+# cursor.execute("INSERT INTO users (name, name_devices) VALUES (?, ?)", (name, name_devices))
+# date = {
+#   "name":name,
+#   "gmail":gmail,
+#   "password":password,
+#   "name_devices": name_devices
+#   }
+# respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
 win.mainloop()
