@@ -58,6 +58,6 @@ def main(page: fl.Page):
         )
     )
 
-fl.app(target=main, view=fl.WEB_BROWSER)
+fl.app(target=main)
 
 #, view=fl.WEB_BROWSER
