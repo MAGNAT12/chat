@@ -27,9 +27,9 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS
                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
 cursor.execute("""CREATE TABLE IF NOT EXISTS
-               devices(
+               ton(
                name TEXT NOT NULL,
-               name_devices TEXT NOT NULL
+               token TEXT NOT NULL
                )""")
 
 cursor.execute('PRAGMA journal_mode = OFF')
@@ -66,27 +66,22 @@ class Name_gmail(Resource):
 class Send_message(Resource):
     def post(self):
         parser = reqparse.RequestParser()
+        parser.add_argument("name_sender", type=str)
         parser.add_argument("name", type=str)
         parser.add_argument("message", type=str)
-        parser.add_argument("name_devices", type=str)
+        parser.add_argument("token", type=str)
         args = parser.parse_args()
-        name = args["name"]
-        name_devices = args['name_devices']
-        cursor.execute(f"SELECT `name` FROM `users` WHERE `name` = '{name}'")
+        name_sender = args["name_sender"]
+        name = args['name']
+        message = args['message']
+        token = args['token']
+        cursor.execute("SELECT name FROM users WHERE `name` = ?", (name,))
         data = cursor.fetchone()
         if data:
-            cursor.execute(f"SELECT `name_devices` FROM devices WHERE `name_devices` = '{name_devices}'")
+            cursor.execute("SELECT token FROM ton WHERE `token` = ?", (token,))
             data = cursor.fetchone()
             if data:
-                name = args["name"]
-                message = args["message"]
-                cursor.execute('SELECT name FROM devices WHERE `name_devices` = ?', (name_devices,))
-                name_sender = cursor.fetchone()
-                name_sender = name_sender[0]
-                cursor.execute(
-                "INSERT INTO mes(name_sender, name, message, timestamp) VALUES(?, ?, ?, datetime('now'));",
-                (name_sender, name, message)
-                            )
+                cursor.execute("INSERT INTO mes(name_sender, name, message) VALUES (?, ?, ?);", (name_sender, name, message))
                 connect.commit()
                 connect.close()
                 return {'message': 'сообщение отправлено'}
@@ -94,6 +89,7 @@ class Send_message(Resource):
                 return {"message":"Вы не вошли в профель"}
         else:
             return {'message': "НЕ найде пользователь"}
+
 
 class Get_messages(Resource):
     def get(self):
@@ -125,26 +121,26 @@ class Profil_user(Resource):
         parser.add_argument("name", type=str)
         parser.add_argument('gmail', type=str)
         parser.add_argument('password', type=str)
-        parser.add_argument("name_devices", type=str)
+        parser.add_argument("token", type=str)
         args = parser.parse_args()
         name = args["name"]
         gmail = args["gmail"]
         password = args['password']
-        name_devices = args['name_devices']
+        token = args['token']
         password_ha = hashlib.sha3_512(password.encode()).hexdigest()
         cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password_ha))
-        data = cursor.fetchone()
-        if name in data:
-            cursor.execute("SELECT name_devices FROM devices WHERE `name_devices` = ?", (name_devices,))
+        data = cursor.fetchall()
+        if data is not None:
+            cursor.execute("SELECT name FROM ton WHERE name = ?", (name,))
             data = cursor.fetchone()
             if data is None:
-                cursor.execute('INSERT INTO devices (name_devices, name) VALUES (?, ?)', (name_devices, name))
+                cursor.execute('INSERT INTO ton (token, name) VALUES (?, ?)', (token, name))
                 connect.commit()
-                return {"message":"Вы вошли в профиль"}
+                return {"message": "Вы вошли в профиль"}
             else:
-                return {"message":"Вы уже вошли в провель"}
+                return {"message": "Вы уже вошли в профиль"}
         else:
-            return {"message":"Зарегистрируйтесь"}
+            return {"message": "Зарегистрируйтесь"}
 
 
 api.add_resource(Name_gmail, "/api/regist")
@@ -154,7 +150,7 @@ api.add_resource(Profil_user, "/api/user")
 
 def delete_old_messages():
     while True:
-        cursor.execute("DELETE FROM mes WHERE timestamp <= datetime('now', '-2 hours')")
+        cursor.execute("DELETE FROM mes WHERE timestamp <= datetime('now', '-1 hours')")
         connect.commit()
         time.sleep(3600)
 

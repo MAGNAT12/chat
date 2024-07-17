@@ -1,4 +1,10 @@
-venv
-Chat.db
+# папки
 __pycache__
-setup.py
+venv
+
+# Базы данных
+Chat.db
+user.db
+
+# Файлы с экспериментами
+test.py

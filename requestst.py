@@ -1,24 +1,46 @@
 import json
 import requests
-import platform
 import sqlite3
+import secrets
+import string
 
-connect = sqlite3.connect('Chat.db', check_same_thread=False)
+alphabet = string.ascii_letters + string.digits
+token = ''.join(secrets.choice(alphabet) for _ in range(10))
+
+
+connect = sqlite3.connect('user.db', check_same_thread=False)
+
 cursor = connect.cursor()
-cursor.execute(""""CREATE TABLE IF NOT EXISTS 
-            users(
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users(
+        name TEXT,
+        token TEXT
+    )
+""")
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS send_message(
+        name TEXT,
+        messages TEXT
+    )
+""")
+
+cursor.execute("""CREATE TABLE IF NOT EXISTS 
+            get_message(
                name TEXT,
-               name_devices TEXT
+               messages TEXT
                )""")
 
+connect.commit()
+
 headers = {'Content-Type': 'application/json'}
-name_devices = platform.node()
 
 def regist():
     date = {
-        "name":"Magnat",
-        "gmail":"rizamatmu@gmail.com",
-        "password":"123456789",
+        "name":"",
+        "gmail":"",
+        "password":"",
     }
 
     respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
@@ -27,16 +49,16 @@ def regist():
 
 def message():
     date = {
-        "name":"Magnat",
-        "message":"привет",
-        "name_devices": name_devices
+        "name_sender":"Magnat",
+        "name":"Azamat",
+        "message":"Привет",
+        "token": "8oWr3aiFJM"
     }
     respons = requests.post("http://127.0.0.1:3000/api/send_message", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 def get():
     date = {
-        "name_devices":name_devices
     }
     respons = requests.get(f"http://127.0.0.1:3000/api/get_messages", data = json.dumps(date), headers=headers)
     print(respons.json())
@@ -44,14 +66,13 @@ def get():
 
 def profil():
     date = {
-        "name":"Magnat",
-        "gmail":"rizamatmu@gmail.com",
-        "password":"123456789",
-        "name_devices": name_devices
+        "name":"Azamat",
+        "gmail":"azamat@gmail.com",
+        "password":"1234567",
+        "token": token
     }
-
     respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
     print(respons.json())
+    print(token)
 
-profil()
-
+message()

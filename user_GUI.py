@@ -23,6 +23,19 @@ def name_gmail_pass():
    gmail = gmail_entry.get()
    password = password_entry.get()
    regist(name, gmail, password)
+   login(name, gmail, password)
+
+
+def login(name, gmail, password):
+   cursor.execute("INSERT INTO users(name, name_devices) VALUES (?, ?);", (name, name_devices))
+   date = {
+        "name":name,
+        "gmail":gmail,
+        "password":password,
+        "name_devices": name_devices
+    }
+   respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
+
 
 
 name_entry = Entry(win, width=25)
@@ -56,24 +69,19 @@ def regist(name, gmail, password):
         "password":password,
         }
    respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
+
    if respons.status_code == 200:
       user_name_label = Label(win, text="Вы зарегистрированны", font=('fixed', 10))
       user_name_label.pack(pady=5)
       win.after(2000, lambda: user_name_label.config(text=""))
+      inpu.pack_forget() 
+      login = Button(win, text="Вход", font=('Times', 12))
+      login.pack(pady=5)
+      
    elif respons.status_code == 400:
       user_name_label = Label(win, text="Пользователь уже существует", font=('fixed', 10))
       user_name_label.pack(pady=5)
       win.after(2000, lambda: user_name_label.config(text=""))
 
 
-
-# win.after(2000, lambda: inpu.config(text="Вход"))
-# cursor.execute("INSERT INTO users (name, name_devices) VALUES (?, ?)", (name, name_devices))
-# date = {
-#   "name":name,
-#   "gmail":gmail,
-#   "password":password,
-#   "name_devices": name_devices
-#   }
-# respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
 win.mainloop()
