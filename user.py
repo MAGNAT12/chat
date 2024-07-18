@@ -4,10 +4,6 @@ import sqlite3
 import secrets
 import string
 
-alphabet = string.ascii_letters + string.digits
-token = ''.join(secrets.choice(alphabet) for _ in range(10))
-
-
 connect = sqlite3.connect('user.db', check_same_thread=False)
 
 cursor = connect.cursor()
@@ -26,53 +22,48 @@ cursor.execute("""
     )
 """)
 
-cursor.execute("""CREATE TABLE IF NOT EXISTS 
-            get_message(
-               name TEXT,
-               messages TEXT
-               )""")
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS get_message(
+        name TEXT,
+        messages TEXT
+    )
+""")
 
 connect.commit()
 
 headers = {'Content-Type': 'application/json'}
 
-
 def register(name, gmail, password):
-    date = {
-        "name":name,
-        "gmail":gmail,
-        "password":password,
+    data = {
+        "name": name,
+        "gmail": gmail,
+        "password": password,
     }
-
-    respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
-    print(respons.json())
-
+    response = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(data), headers=headers)
+    print(response.json())
 
 def profil(name, gmail, password):
     alphabet = string.ascii_letters + string.digits
     token = ''.join(secrets.choice(alphabet) for _ in range(10))
-    cursor.execute("SELECT token FROM users WHERE token = ?", (token,))
+    cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
     data = cursor.fetchone()
     if data is None:
         cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (name, token))
-    else:
-        pass
-    connect.commit()
-    date = {
-        "name":name,
-        "gmail":gmail,
-        "password":password,
+        connect.commit()
+    data = {
+        "name": name,
+        "gmail": gmail,
+        "password": password,
         "token": token
     }
-    respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
-    print(respons.json())
-
+    response = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(data), headers=headers)
+    print(response.json())
 
 def message(name, messages):
-    cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
-    name_sender = cursor.fetchone()
-    cursor.execute("SELECT token FROM users WHERE name = ?", (name_sender,))
-    token = cursor.fetchone()
+    cursor.execute("SELECT name FROM users")
+    name_sender = cursor.fetchall()
+    cursor.execute("SELECT token FROM users")
+    token = cursor.fetchall()
     date = {
         "name_sender":name_sender,
         "name":name,
@@ -80,29 +71,61 @@ def message(name, messages):
         "token": token
     }
     respons = requests.post("http://127.0.0.1:3000/api/send_message", data=json.dumps(date), headers=headers)
-    print(respons.json())
+    if respons.status_code == 200:
+        cursor.execute("INSERT INTO send_message(name, messages) VALUES (?, ?)", (name, messages))
+        connect.commit()
+        print(f"Сообщение отправелено {respons.json()}")
+    else:
+        print(f"Ошибка: {respons.status_code}")
 
+def send_all_message():
+    cursor.execute("SELECT * FROM send_message")
+    messages = cursor.fetchall()
+    for message in messages:
+        print(message)
+
+def get_all_messages():
+    cursor.execute("SELECT * FROM get_message")
+    messages = cursor.fetchall()
+    for message in messages:
+        print(message)
 
 if __name__ == "__main__":
+    token = None
     while True:
         print("1. Зарегистрироваться")
         print("2. Вход")
         print("3. Отправить сообщение")
-        print("4. Выход")
-        a = input("Выберите: ")
-        if a == "1":
-            name = input("Ввидите имя: ")
-            gmail = input("Ввидете gmail: ")
-            password = input("Ввидите пароль: ")
+        print("4. Для получения сообщений")
+        print("5. Посмотреть все отправленные сообщения")
+        print("6. Посмотреть все полученные сообщения")
+        print("7. Выход")
+        choice = input("Выберите: ")
+        if choice == "1":
+            name = input("Введите имя: ")
+            gmail = input("Введите gmail: ")
+            password = input("Введите пароль: ")
             register(name, gmail, password)
-        if a == "2":
-            name = input("Ввидите имя: ")
-            gmail = input("Ввидете gmail: ")
-            password = input("Ввидите пароль: ")
+            print("---------------")
+        elif choice == "2":
+            name = input("Введите имя: ")
+            gmail = input("Введите gmail: ")
+            password = input("Введите пароль: ")
             profil(name, gmail, password)
-        if a == "3":
-            name = input("Ввидите имя каму хотите отправить сообщение: ")
-            messages = input("Ввидите сообщение которое хотите отправить: ")
-            message(name, messages)
-        if a == "4":
+            print("---------------")
+        elif choice == "3":
+            recipient_name = input("Введите имя кому хотите отправить сообщение: ")
+            message_text = input("Введите сообщение которое хотите отправить: ")
+            message(recipient_name, message_text)
+            print("---------------")
+        elif choice == "4":
+            print("Пока не работает")
+            print("---------------")
+        elif choice == "5":
+            send_all_message()
+            print("---------------")
+        elif choice == "6":
+            get_all_messages()
+            print("---------------")
+        elif choice == "7":
             break

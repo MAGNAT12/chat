@@ -80,7 +80,7 @@ class Send_message(Resource):
         if data:
             cursor.execute("SELECT token FROM ton WHERE `token` = ?", (token,))
             data = cursor.fetchone()
-            if data:
+            if data is None:
                 cursor.execute("INSERT INTO mes(name_sender, name, message) VALUES (?, ?, ?);", (name_sender, name, message))
                 connect.commit()
                 connect.close()
