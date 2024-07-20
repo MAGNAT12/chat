@@ -130,7 +130,8 @@ class Profil_user(Resource):
         password_ha = hashlib.sha3_512(password.encode()).hexdigest()
         cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password_ha))
         data = cursor.fetchall()
-        if data is not None:
+        data_str = str(data)
+        if  name in data_str:
             cursor.execute("SELECT name FROM ton WHERE name = ?", (name,))
             data = cursor.fetchone()
             if data is None:

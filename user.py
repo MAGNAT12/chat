@@ -47,9 +47,11 @@ def profil(name, gmail, password):
     token = ''.join(secrets.choice(alphabet) for _ in range(10))
     cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
     data = cursor.fetchone()
-    if data is None:
+    if data is not None:
         cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (name, token))
         connect.commit()
+    else:
+        pass
     data = {
         "name": name,
         "gmail": gmail,
