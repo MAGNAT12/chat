@@ -1,9 +1,8 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_restful import Api, Resource, reqparse
 import sqlite3
 import threading
 import time
-import hashlib
 import os
 
 app = Flask(__name__)
@@ -50,18 +49,15 @@ class Name_gmail(Resource):
         args = parser.parse_args()
         name = args["name"]
         gmail = args['gmail']
+        password = args['password']
         cursor.execute(f"SELECT `name`, `gmail` FROM `users` WHERE `name` = '{name}' AND `gmail` = '{gmail}'")
         data = cursor.fetchone()
         if data is None:
-            name = args["name"]
-            gmail = args['gmail']
-            password = args['password']
-            password_ha = hashlib.sha3_512(password.encode()).hexdigest()
-            cursor.execute("INSERT INTO users (name, gmail, password) VALUES (?, ?, ?);", (name, gmail, password_ha))
+            cursor.execute("INSERT INTO users (name, gmail, password) VALUES (?, ?, ?);", (name, gmail, password))
             connect.commit()
             return {'message': 'Вы зарегистрированны'}, 200
         else:
-            return {'message': 'Ник уже зарегистрированн'}, 400
+            return {'message': 'Такой пользователь уже существует'}, 400
         
 class Send_message(Resource):
     def post(self):
@@ -84,35 +80,35 @@ class Send_message(Resource):
                 cursor.execute("INSERT INTO mes(name_sender, name, message) VALUES (?, ?, ?);", (name_sender, name, message))
                 connect.commit()
                 connect.close()
-                return {'message': 'сообщение отправлено'}
+                return {'message': 'сообщение отправлено'}, 200
             else:
-                return {"message":"Вы не вошли в профель"}
+                return {"message":"Вы не вошли в профель"}, 400
         else:
-            return {'message': "НЕ найде пользователь"}
+            return {'message': "НЕ найде пользователь"}, 400
 
 
 class Get_messages(Resource):
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument("name_devices", type=str)
+        parser.add_argument("token", type=str)
         args = parser.parse_args()
-        name_devices = args['name_devices']
-        cursor.execute(f"SELECT `name_devices` FROM devices WHERE `name_devices` = '{name_devices}'")
+        token = args['token']
+        cursor.execute('SELECT name FROM ton WHERE `token` = ?', (token,))
         data = cursor.fetchone()
         if data:
-            cursor.execute('SELECT name FROM devices WHERE `name_devices` = ?', (name_devices,))
+            cursor.execute('SELECT name FROM ton WHERE `token` = ?', (token,))
             name_sender = cursor.fetchone()
             name_sender = name_sender[0]
             cursor.execute("SELECT name_sender, message, timestamp FROM mes WHERE name = ?", (name_sender,))
             messages = cursor.fetchall()
             if messages:
                 messages_list = [{'name_sender': msg[0], 'message': msg[1]} for msg in messages]
-                return jsonify(messages_list)
+                return messages_list
             else:
-                return {'message': 'Сообщений не найдено'}
+                return {'message': 'Сообщений не найдено'}, 400
         else:
             connect.close()
-            return {"message": "Зарегистрируйтесь"}
+            return {"message": "Зарегистрируйтесь"}, 400
 
         
 class Profil_user(Resource):
@@ -127,22 +123,25 @@ class Profil_user(Resource):
         gmail = args["gmail"]
         password = args['password']
         token = args['token']
-        password_ha = hashlib.sha3_512(password.encode()).hexdigest()
-        cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password_ha))
+        cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password))
         data = cursor.fetchall()
         data_str = str(data)
-        if  name in data_str:
-            cursor.execute("SELECT name FROM ton WHERE name = ?", (name,))
-            data = cursor.fetchone()
-            if data is None:
-                cursor.execute('INSERT INTO ton (token, name) VALUES (?, ?)', (token, name))
-                connect.commit()
-                return {"message": "Вы вошли в профиль"}
+        if name in data_str:
+            if gmail in data_str:
+                if password in data_str:
+                    cursor.execute("SELECT name FROM ton WHERE name = ?", (name,))
+                    data = cursor.fetchone()
+                    if data is None:
+                        cursor.execute('INSERT INTO ton (token, name) VALUES (?, ?)', (token, name))
+                        connect.commit()
+                        return {"message": "Вы вошли в профиль"}, 200
+                else:
+                    return {"message":"Неправельный пароль"}, 400
             else:
-                return {"message": "Вы уже вошли в профиль"}
+                return {"message":"Неправельная почта"}, 400
         else:
-            return {"message": "Зарегистрируйтесь"}
-
+            return {"message":"Неправельный имя"}, 400
+            
 
 api.add_resource(Name_gmail, "/api/regist")
 api.add_resource(Send_message, "/api/send_message")

@@ -67,7 +67,7 @@ def message(name, messages):
     cursor.execute("SELECT token FROM users")
     token = cursor.fetchall()
     date = {
-        "name_sender":name_sender,
+        "name_sender":name_sender[0],
         "name":name,
         "message":messages,
         "token": token
@@ -76,21 +76,31 @@ def message(name, messages):
     if respons.status_code == 200:
         cursor.execute("INSERT INTO send_message(name, messages) VALUES (?, ?)", (name, messages))
         connect.commit()
-        print(f"Сообщение отправелено {respons.json()}")
+        print("Сообщение отправелено")
     else:
         print(f"Ошибка: {respons.status_code}")
+
+def get():
+    cursor.execute("SELECT token FROM users")
+    token = cursor.fetchone()
+    print(token)
+    date = {
+        "token":token
+    }
+    respons = requests.get(f"http://127.0.0.1:3000/api/get_messages", data = json.dumps(date), headers=headers)
+    print(respons.json())
 
 def send_all_message():
     cursor.execute("SELECT * FROM send_message")
     messages = cursor.fetchall()
     for message in messages:
-        print(message)
+        print(f"name: {message[0]}, message:{message[1]}")
 
 def get_all_messages():
     cursor.execute("SELECT * FROM get_message")
     messages = cursor.fetchall()
     for message in messages:
-        print(message)
+        print(f"name: {message[0]} message:{message[1]},")
 
 if __name__ == "__main__":
     token = None
@@ -121,7 +131,7 @@ if __name__ == "__main__":
             message(recipient_name, message_text)
             print("---------------")
         elif choice == "4":
-            print("Пока не работает")
+            get()
             print("---------------")
         elif choice == "5":
             send_all_message()
@@ -131,3 +141,5 @@ if __name__ == "__main__":
             print("---------------")
         elif choice == "7":
             break
+
+

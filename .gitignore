@@ -1,6 +1,8 @@
 # папки
 __pycache__
 venv
+.vs
+Flet
 
 # Базы данных
 Chat.db
