@@ -94,4 +94,4 @@ python GUI/register.py
 
 ## Лицензия
 
-Этот проект лицензирован под лицензией MIT. См. файл ([LICENSE](https://github.com/MAGNAT12/chat/blob/main/LICENSE)) для получения дополнительных сведений.
+Этот проект лицензирован под лицензией MIT. См. файл [LICENSE](https://github.com/MAGNAT12/chat/blob/main/LICENSE) для получения дополнительных сведений.
