@@ -43,36 +43,36 @@ def regist():
         "password":"",
     }
 
-    respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
+    respons = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 
 def message():
     date = {
-        "name_sender":"Magnat",
-        "name":"Azamat",
-        "message":"Привет",
-        "token": "8oWr3aiFJM"
+        "name_sender":"",
+        "name":"",
+        "message":"",
+        "token": ""
     }
-    respons = requests.post("http://127.0.0.1:3000/api/send_message", data=json.dumps(date), headers=headers)
+    respons = requests.post("https://magnatri.pythonanywhere.com/api/send_message", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 def get():
     date = {
     }
-    respons = requests.get(f"http://127.0.0.1:3000/api/get_messages", data = json.dumps(date), headers=headers)
+    respons = requests.get(f"https://magnatri.pythonanywhere.com/api/get_messages", data = json.dumps(date), headers=headers)
     print(respons.json())
 
 
 def profil():
     date = {
-        "name":"Azamat",
-        "gmail":"azamat@gmail.com",
-        "password":"1234567",
+        "name":"",
+        "gmail":"",
+        "password":"",
         "token": token
     }
-    respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
+    respons = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(date), headers=headers)
     print(respons.json())
     print(token)
 
-message()
+regist()

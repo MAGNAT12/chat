@@ -39,7 +39,7 @@ def register(name, gmail, password):
         "gmail": gmail,
         "password": password,
     }
-    response = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(data), headers=headers)
+    response = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(data), headers=headers)
     print(response.json())
 
 def profil(name, gmail, password):
@@ -58,7 +58,7 @@ def profil(name, gmail, password):
         "password": password,
         "token": token
     }
-    response = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(data), headers=headers)
+    response = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(data), headers=headers)
     print(response.json())
 
 def message(name, messages):
@@ -72,7 +72,7 @@ def message(name, messages):
         "message":messages,
         "token": token
     }
-    respons = requests.post("http://127.0.0.1:3000/api/send_message", data=json.dumps(date), headers=headers)
+    respons = requests.post("https://magnatri.pythonanywhere.com/api/send_message", data=json.dumps(date), headers=headers)
     if respons.status_code == 200:
         cursor.execute("INSERT INTO send_message(name, messages) VALUES (?, ?)", (name, messages))
         connect.commit()
@@ -87,7 +87,7 @@ def get():
     date = {
         "token":token
     }
-    respons = requests.get(f"http://127.0.0.1:3000/api/get_messages", data = json.dumps(date), headers=headers)
+    respons = requests.get(f"https://magnatri.pythonanywhere.com/api/get_messages", data = json.dumps(date), headers=headers)
     print(respons.json())
 
 def send_all_message():
