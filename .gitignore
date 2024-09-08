@@ -11,3 +11,4 @@ user.db
 # Файлы с экспериментами
 test.py
 cipher.py
+.git
