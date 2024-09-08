@@ -6,7 +6,6 @@ import json
 from tkinter import *
 import asyncio
 
-
 headers = {'Content-Type': 'application/json'}
 
 def login():
@@ -39,11 +38,46 @@ def login():
 
     connect.commit()
 
+    def profil_A(name, gmail, password):
+        async def profile():
+            alphabet = string.ascii_letters + string.digits
+            token = ''.join(secrets.choice(alphabet) for _ in range(10))
+            cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
+            data = cursor.fetchone()
+            if data is None:
+                cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (name, token))
+                connect.commit()
+
+            data = {
+                "name": name,
+                "gmail": gmail,
+                "password": password,
+                "token": token
+            }
+            response = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(data), headers=headers)
+            if response.status_code == 200:
+                root.destroy()
+                await asyncio.sleep(0.02)
+                from profil import profil
+                profil()
+            elif response.status_code == 400:
+                a = response.json()
+                user_name_label = Label(root, text=a["message"], font=('fixed', 10))
+                user_name_label.pack(pady=6)
+                root.after(2000, lambda: user_name_label.config(text=""))
+
+        # Ensure we don't have an existing event loop running
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(profile())
+        else:
+            loop.run_until_complete(profile())
+
     def name_gmail_pass():
         name = name_entry.get()
         gmail = gmail_entry.get()
         password = password_entry.get()
-        asyncio.create_task(profil(name, gmail, password))
+        profil_A(name, gmail, password)
 
     name_entry = Entry(root, width=25)
     name_entry.pack(pady=5)
@@ -56,35 +90,5 @@ def login():
 
     inpu = Button(root, text="Вход", font=('Times', 12), command=name_gmail_pass)
     inpu.pack(pady=5)
-
-    async def profil(name, gmail, password):
-        alphabet = string.ascii_letters + string.digits
-        token = ''.join(secrets.choice(alphabet) for _ in range(10))
-        cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
-        data = cursor.fetchone()
-        if data is None:
-            cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (name, token))
-            connect.commit()
-
-        data = {
-            "name": name,
-            "gmail": gmail,
-            "password": password,
-            "token": token
-        }
-        response = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(data), headers=headers)
-        if response.status_code == 200:
-            root.after(10, lambda: asyncio.create_task(profile()))
-
-        if response.status_code == 400:
-            a = response.json()
-            user_name_label = Label(root, text=a["message"], font=('fixed', 10))
-            user_name_label.pack(pady=6)
-            root.after(2000, lambda: user_name_label.config(text=""))
-
-    async def profile():
-        root.destroy()
-        from GUI.profil import profil
-        profil()
 
     root.mainloop()

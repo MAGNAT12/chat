@@ -60,11 +60,10 @@ inpu.pack(pady=11)
 async def login_a():
     win.destroy()
     await asyncio.sleep(0.02)
-    from GUI.login import login
+    from login import login
     login()
 
 login_b = Button(win, text="Вход", font=('Times', 12), command=lambda: asyncio.run(login_a()))
-# Move this button to the top-right corner
 login_b.place(x=470, y=10, anchor='ne')
 
 def regist(name, gmail, password):
@@ -74,7 +73,7 @@ def regist(name, gmail, password):
             "gmail":gmail,
             "password":password_ha,
             }
-    respons = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(date), headers=headers)
+    respons = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(date), headers=headers)
 
     if respons.status_code == 200:
         user_name_label = Label(win, text="Вы зарегистрированны", font=('fixed', 10))
@@ -96,15 +95,19 @@ def regist(name, gmail, password):
             "password": password_ha,
             "token": token
         }
-        response = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(data), headers=headers)
+        response = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(data), headers=headers)
         if response.status_code == 200:
             async def profile():
                 win.destroy()
                 await asyncio.sleep(0.02)
-                from GUI.profil import profil
+                from profil import profil
                 profil()
             
             asyncio.run(profile())
+
+        else:
+            user_name_label = Label(win, text="Такой пользователь уже существует", font=('fixed', 10))
+            user_name_label.pack(pady=6)
 
         
       
