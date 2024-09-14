@@ -67,7 +67,7 @@ def message(name, messages):
     cursor.execute("SELECT token FROM users")
     token = cursor.fetchall()
     date = {
-        "name_sender":name_sender[0],
+        "name_sender":name_sender,
         "name":name,
         "message":messages,
         "token": token
