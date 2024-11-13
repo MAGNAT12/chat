@@ -107,7 +107,6 @@ class Get_messages(Resource):
             else:
                 return {'message': 'Сообщений не найдено'}, 400
         else:
-            connect.close()
             return {"message": "Зарегистрируйтесь"}, 400
 
         
@@ -115,38 +114,66 @@ class Profil_user(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("name", type=str)
-        parser.add_argument('gmail', type=str)
-        parser.add_argument('password', type=str)
+        parser.add_argument("gmail", type=str)
+        parser.add_argument("password", type=str)
         parser.add_argument("token", type=str)
         args = parser.parse_args()
         name = args["name"]
         gmail = args["gmail"]
-        password = args['password']
-        token = args['token']
-        cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password))
+        password = args["password"]
+        token = args["token"]
+
+        cursor.execute("SELECT name, gmail, password FROM users WHERE name = ? AND gmail = ? AND password = ?", (name, gmail, password,))
         data = cursor.fetchall()
-        data_str = str(data)
-        if name in data_str:
-            if gmail in data_str:
-                if password in data_str:
-                    cursor.execute("SELECT name FROM ton WHERE name = ?", (name,))
-                    data = cursor.fetchone()
-                    if data is None:
-                        cursor.execute('INSERT INTO ton (token, name) VALUES (?, ?)', (token, name))
-                        connect.commit()
-                        return {"message": "Вы вошли в профиль"}, 200
-                else:
-                    return {"message":"Неправельный пароль"}, 400
+        if data:
+            cursor.execute("SELECT name FROM ton WHERE name = ?", (name,))
+            data = cursor.fetchone()
+            if data is None:
+                cursor.execute("INSERT INTO ton (token, name) VALUES (?, ?)", (token, name))
+                connect.commit()
+                return {"message": "TR"}, 200
             else:
-                return {"message":"Неправельная почта"}, 400
+                return {"message": "FL"}, 400
+        return {"message": "FLR"}, 400
+
+
+
+class Comands(Resource):  
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("token", type=str)
+        args = parser.parse_args()
+        name = args["token"]
+        if name == 'd7':
+            cursor.execute("SELECT `name` FROM `users`")
+            all_user = cursor.fetchall()
+            return {"users":all_user}
+        
+    def delete(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("token", type=str)
+        parser.add_argument("name", type=str)
+        args = parser.parse_args()
+        token = args["token"]
+        name = args["name"]
+        if token == 'd7':
+            cursor.execute("SELECT `name` FROM `users` WHERE `name` = ?", (name,))
+            user = cursor.fetchall()
+            if user:
+                cursor.execute("DELETE FROM `users` WHERE `name` = ?", (name,))
+                connect.commit()
+                connect.close()
+                return {"message": "True"}
+            else:
+                return {"message": "False"}
         else:
-            return {"message":"Неправельный имя"}, 400
-            
+            return {"message": "False"}
 
 api.add_resource(Name_gmail, "/api/regist")
 api.add_resource(Send_message, "/api/send_message")
 api.add_resource(Get_messages, "/api/get_messages")
 api.add_resource(Profil_user, "/api/user")
+api.add_resource(Comands,"/api/comands")
 
 def delete_old_messages():
     while True:

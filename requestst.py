@@ -38,9 +38,9 @@ headers = {'Content-Type': 'application/json'}
 
 def regist():
     date = {
-        "name":"",
-        "gmail":"",
-        "password":"",
+        "name":"addf",
+        "gmail":"asddf",
+        "password":"adf"
     }
 
     respons = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(date), headers=headers)
@@ -49,10 +49,10 @@ def regist():
 
 def message():
     date = {
-        "name_sender":"",
-        "name":"",
-        "message":"",
-        "token": ""
+        "name_sender":"asd",
+        "name":"dfg",
+        "message":"привет",
+        "token":"VCYVakoIT0"
     }
     respons = requests.post("https://magnatri.pythonanywhere.com/api/send_message", data=json.dumps(date), headers=headers)
     print(respons.json())
@@ -66,10 +66,10 @@ def get():
 
 def profil():
     date = {
-        "name":"",
-        "gmail":"",
-        "password":"",
-        "token": token
+        "name":"2",
+        "gmail":"2",
+        "password":"2",
+        "token": None
     }
     respons = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(date), headers=headers)
     print(respons.json())

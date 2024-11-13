@@ -4,8 +4,7 @@ import sqlite3
 import secrets
 import string
 
-connect = sqlite3.connect('user.db', check_same_thread=False)
-
+connect = sqlite3.connect('user.db', check_same_thread=False) 
 cursor = connect.cursor()
 
 cursor.execute("""
@@ -40,14 +39,15 @@ def register(name, gmail, password):
         "password": password,
     }
     response = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(data), headers=headers)
-    print(response.json())
+    a = response.json()
+    print(a['message'])
 
 def profil(name, gmail, password):
     alphabet = string.ascii_letters + string.digits
     token = ''.join(secrets.choice(alphabet) for _ in range(10))
     cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
     data = cursor.fetchone()
-    if data is not None:
+    if data is None:
         cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (name, token))
         connect.commit()
     else:
@@ -59,7 +59,8 @@ def profil(name, gmail, password):
         "token": token
     }
     response = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(data), headers=headers)
-    print(response.json())
+    a = response.json()
+    print(a['message'])
 
 def message(name, messages):
     cursor.execute("SELECT name FROM users")
@@ -67,7 +68,7 @@ def message(name, messages):
     cursor.execute("SELECT token FROM users")
     token = cursor.fetchall()
     date = {
-        "name_sender":name_sender[0],
+        "name_sender":name_sender,
         "name":name,
         "message":messages,
         "token": token
@@ -78,7 +79,7 @@ def message(name, messages):
         connect.commit()
         print("Сообщение отправелено")
     else:
-        print(f"Ошибка: {respons.status_code}")
+        print(f"Ошибка: {respons.json()}")
 
 def get():
     cursor.execute("SELECT token FROM users")
@@ -88,7 +89,8 @@ def get():
         "token":token
     }
     respons = requests.get(f"https://magnatri.pythonanywhere.com/api/get_messages", data = json.dumps(date), headers=headers)
-    print(respons.json())
+    a = respons.json()
+    print(a['message'])
 
 def send_all_message():
     cursor.execute("SELECT * FROM send_message")

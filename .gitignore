@@ -1,14 +1,10 @@
-# папки
+.vs
+.vscode
 __pycache__
 venv
-.vs
-Flet
 
-# Базы данных
+cipher.py
+test.py
+
 Chat.db
 user.db
-
-# Файлы с экспериментами
-test.py
-cipher.py
-.git
