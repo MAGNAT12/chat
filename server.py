@@ -131,10 +131,10 @@ class Profil_user(Resource):
             if data is None:
                 cursor.execute("INSERT INTO ton (token, name) VALUES (?, ?)", (token, name))
                 connect.commit()
-                return {"message": "TR"}, 200
+                return {"message": "Вы успешно вошли в аккаунт"}, 200
             else:
-                return {"message": "FL"}, 400
-        return {"message": "FLR"}, 400
+                return {"message": "Вы уже вошли в аккаунт"}, 300
+        return {"message": "Вы не зарегистрированы"}, 400
 
 
 

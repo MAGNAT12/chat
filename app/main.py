@@ -1,109 +1,83 @@
 import flet as ft
-import requests
 import sqlite3
+import requests
 import string
 import secrets
+from chat import chat_main
 
-connect = sqlite3.connect('user.db', check_same_thread=False)
+# Database connection
+connect = sqlite3.connect("user.db", check_same_thread=False)
 cursor = connect.cursor()
 
-# Создание таблиц, если они не существуют
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users(
-        name TEXT,
-        token TEXT
-    )
+# Create tables if they don't exist
+cursor.executescript("""
+CREATE TABLE IF NOT EXISTS users (
+    name TEXT,
+    token TEXT
+);
+CREATE TABLE IF NOT EXISTS send_message (
+    name TEXT,
+    messages TEXT
+);
+CREATE TABLE IF NOT EXISTS get_message (
+    name TEXT,
+    messages TEXT
+);
 """)
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS send_message(
-        name TEXT,
-        messages TEXT
-    )
-""")
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS get_message(
-        name TEXT,
-        messages TEXT
-    )
-""")
-
 connect.commit()
 
-headers = {'Content-Type': 'application/json'}
+headers = {"Content-Type": "application/json"}
+
 
 def main(page: ft.Page):
-    page.title = "Flet app"
-    page.theme_mode = 'dark'
+    page.title = "Chat"
+    page.theme_mode = "system"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
     result = ft.Text()
 
+    # Check if user is already registered
     cursor.execute("SELECT name FROM users")
-    name_sender = cursor.fetchall()
+    user = cursor.fetchone()
 
-    if name_sender:
-        page.controls.clear()
-        result.value = f"Зарегистрированные пользователи: {name_sender[0]}"
-        page.add(result)
-        page.update()
-
+    if user:
+        chat_main(page)  # Redirect to chat interface
     else:
+        # Registration Form
         def register(e):
             data = {
                 "name": Name.value,
                 "gmail": Gmail.value,
-                "password": Password.value
+                "password": Password.value,
             }
-
-            response = requests.post("https://magnatri.pythonanywhere.com/api/regist", json=data, headers=headers)
-            if response.status_code == 200:
-                alphabet = string.ascii_letters + string.digits
-                token = ''.join(secrets.choice(alphabet) for _ in range(10))
-
-                cursor.execute("SELECT name FROM users WHERE token = ?", (token,))
-                data = cursor.fetchone()
-
-                if data is None:
+            try:
+                response = requests.post(
+                    "https://magnatri.pythonanywhere.com/api/regist",
+                    json=data,
+                    headers=headers,
+                )
+                if response.status_code == 200:
+                    token = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
                     cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (Name.value, token))
                     connect.commit()
-
-                data = {
-                    "name": Name.value,
-                    "gmail": Gmail.value,
-                    "password": Password.value,
-                    "token": token
-                }
-                response = requests.post("https://magnatri.pythonanywhere.com/api/user", json=data, headers=headers)
-                mes = response.json()
-                result.value = mes['message']
-
-                if response.status_code == 200:
-                    page.controls.clear()
-                    result.value = "Регистрация успешна!"
-                    page.add(result)
-                    page.update()
+                    chat_main(page)  # Redirect to chat interface
+                else:
+                    result.value = response.json().get("message", "Registration failed.")
+            except requests.RequestException as e:
+                result.value = f"Error: {e}"
 
             page.update()
 
-        Name = ft.TextField(label='Name', width=300)
-        Gmail = ft.TextField(label='Gmail', width=300)
-        Password = ft.TextField(label='Password', width=300)
-        but = ft.ElevatedButton(text='Регистрация', on_click=register)
-        result = ft.Text()
+        Name = ft.TextField(label="Name", width=300)
+        Gmail = ft.TextField(label="Gmail", width=300)
+        Password = ft.TextField(label="Password", width=300, password=True)
+        register_button = ft.ElevatedButton(text="Register", on_click=register)
 
         page.add(
             ft.Column(
-                [
-                    Name,
-                    Gmail,
-                    Password,
-                    but,
-                    result
-                ],
+                [Name, Gmail, Password, register_button, result],
                 alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
         )
 
