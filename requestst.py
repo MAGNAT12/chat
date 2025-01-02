@@ -65,14 +65,18 @@ def get():
 
 
 def profil():
-    date = {
-        "name":"2",
-        "gmail":"2",
-        "password":"2",
-        "token": None
-    }
-    respons = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(date), headers=headers)
+    date = {"name": "admin' OR 1=1 --", "gmail": "test", "password": "test"}
+
+    respons = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(date), headers=headers)
     print(respons.json())
     print(token)
 
-regist()
+
+def search():
+    data = {
+        "name":"a"
+    }
+    res = requests.post("http://127.0.0.1:3000/api/search",json=data)
+    a = res.json()
+    print(a)
+search()

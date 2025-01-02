@@ -7,6 +7,8 @@ import os
 
 app = Flask(__name__)
 api = Api(app)
+from flask_cors import CORS
+CORS(app)
 
 connect = sqlite3.connect('Chat.db', check_same_thread=False)
 cursor = connect.cursor()
@@ -42,49 +44,70 @@ if os.path.exists(journal_file):
 
 class Name_gmail(Resource):
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("name", type=str)
-        parser.add_argument('gmail', type=str)
-        parser.add_argument('password', type=str)
-        args = parser.parse_args()
-        name = args["name"]
-        gmail = args['gmail']
-        password = args['password']
-        cursor.execute(f"SELECT `name`, `gmail` FROM `users` WHERE `name` = '{name}' AND `gmail` = '{gmail}'")
-        data = cursor.fetchone()
-        if data is None:
-            cursor.execute("INSERT INTO users (name, gmail, password) VALUES (?, ?, ?);", (name, gmail, password))
-            connect.commit()
-            return {'message': 'Вы зарегистрированны'}, 200
-        else:
-            return {'message': 'Такой пользователь уже существует'}, 400
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument("name", type=str, required=True, help="Name is required")
+            parser.add_argument('gmail', type=str, required=True, help="Gmail is required")
+            parser.add_argument('password', type=str, required=True, help="Password is required")
+            args = parser.parse_args()
+
+            name = args["name"]
+            gmail = args['gmail']
+            password = args['password']
+
+            cursor.execute("SELECT `name`, `gmail` FROM `users` WHERE `name` = ? AND `gmail` = ?", (name, gmail))
+            data = cursor.fetchone()
+
+            if data is None:
+                cursor.execute("INSERT INTO users (name, gmail, password) VALUES (?, ?, ?);", (name, gmail, password))
+                connect.commit()
+                return {'message': 'Вы зарегистрированы'}, 200
+            else:
+                return {'message': 'Такой пользователь уже существует'}, 400
+        except sqlite3.Error as e:
+            connect.rollback()
+            return {'message': 'Ошибка базы данных', 'error': str(e)}, 500
+        except Exception as e:
+            return {'message': 'Произошла ошибка', 'error': str(e)}, 500
+
         
 class Send_message(Resource):
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("name_sender", type=str)
-        parser.add_argument("name", type=str)
-        parser.add_argument("message", type=str)
-        parser.add_argument("token", type=str)
-        args = parser.parse_args()
-        name_sender = args["name_sender"]
-        name = args['name']
-        message = args['message']
-        token = args['token']
-        cursor.execute("SELECT name FROM users WHERE `name` = ?", (name,))
-        data = cursor.fetchone()
-        if data:
-            cursor.execute("SELECT token FROM ton WHERE `token` = ?", (token,))
-            data = cursor.fetchone()
-            if data is None:
-                cursor.execute("INSERT INTO mes(name_sender, name, message) VALUES (?, ?, ?);", (name_sender, name, message))
-                connect.commit()
-                connect.close()
-                return {'message': 'сообщение отправлено'}, 200
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument("name_sender", type=str, required=True, help="Sender name is required")
+            parser.add_argument("name", type=str, required=True, help="Recipient name is required")
+            parser.add_argument("message", type=str, required=True, help="Message is required")
+            parser.add_argument("token", type=str, required=True, help="Token is required")
+            args = parser.parse_args()
+
+            name_sender = args["name_sender"]
+            name = args['name']
+            message = args['message']
+            token = args['token']
+
+            cursor.execute("SELECT name FROM users WHERE `name` = ?", (name,))
+            recipient_exists = cursor.fetchone()
+
+            if recipient_exists:
+                cursor.execute("SELECT token FROM ton WHERE `token` = ?", (token,))
+                token_valid = cursor.fetchone()
+
+                if token_valid:
+                    cursor.execute("INSERT INTO mes(name_sender, name, message) VALUES (?, ?, ?);", 
+                                   (name_sender, name, message))
+                    connect.commit()
+                    return {'message': 'Сообщение отправлено'}, 200
+                else:
+                    return {"message": "Вы не вошли в профиль"}, 400
             else:
-                return {"message":"Вы не вошли в профель"}, 400
-        else:
-            return {'message': "НЕ найде пользователь"}, 400
+                return {'message': "Пользователь не найден"}, 400
+        except sqlite3.Error as e:
+            connect.rollback()
+            return {'message': 'Ошибка базы данных', 'error': str(e)}, 500
+        except Exception as e:
+            return {'message': 'Произошла ошибка', 'error': str(e)}, 500
+
 
 
 class Get_messages(Resource):
@@ -137,11 +160,28 @@ class Profil_user(Resource):
         return {"message": "Вы не зарегистрированы"}, 400
 
 
+class Search(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("name", type=str, required=True, help="Поисковый запрос обязателен")
+        args = parser.parse_args()
+
+        query = args["name"].lower()
+
+        cursor.execute("SELECT name FROM users WHERE LOWER(name) LIKE ?", ('%' + query + '%',))
+        results = cursor.fetchall()
+
+        if results:
+            users = [{"name": user[0]} for user in results]
+            return {"users": users}, 200
+        else:
+            return {"message": "Пользователи не найдены"}, 404
+
 
 class Comands(Resource):  
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument("token", type=str)
+        parser.add_argument("token", type=str, required=True, help="Token is required")
         args = parser.parse_args()
         name = args["token"]
         if name == 'd7':
@@ -174,6 +214,7 @@ api.add_resource(Send_message, "/api/send_message")
 api.add_resource(Get_messages, "/api/get_messages")
 api.add_resource(Profil_user, "/api/user")
 api.add_resource(Comands,"/api/comands")
+api.add_resource(Search, "/api/search")
 
 def delete_old_messages():
     while True:
@@ -185,4 +226,4 @@ thread = threading.Thread(target=delete_old_messages, daemon=True)
 thread.start()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=3000, host="127.0.0.1")
+    app.run(debug=True, port=3000, host="0.0.0.0")

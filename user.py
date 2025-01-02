@@ -38,7 +38,7 @@ def register(name, gmail, password):
         "gmail": gmail,
         "password": password,
     }
-    response = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(data), headers=headers)
+    response = requests.post("http://127.0.0.1:3000/api/regist", data=json.dumps(data), headers=headers)
     a = response.json()
     print(a['message'])
 
@@ -58,7 +58,7 @@ def profil(name, gmail, password):
         "password": password,
         "token": token
     }
-    response = requests.post("https://magnatri.pythonanywhere.com/api/user", data=json.dumps(data), headers=headers)
+    response = requests.post("http://127.0.0.1:3000/api/user", data=json.dumps(data), headers=headers)
     a = response.json()
     print(a['message'])
 
@@ -73,7 +73,7 @@ def message(name, messages):
         "message":messages,
         "token": token
     }
-    respons = requests.post("https://magnatri.pythonanywhere.com/api/send_message", data=json.dumps(date), headers=headers)
+    respons = requests.post("http://127.0.0.1:3000/api/send_message", data=json.dumps(date), headers=headers)
     if respons.status_code == 200:
         cursor.execute("INSERT INTO send_message(name, messages) VALUES (?, ?)", (name, messages))
         connect.commit()
@@ -83,14 +83,34 @@ def message(name, messages):
 
 def get():
     cursor.execute("SELECT token FROM users")
-    token = cursor.fetchone()
-    print(token)
+    token = cursor.fetchone()  # fetchone возвращает кортеж (token,), поэтому нужно получить первый элемент
+    if token:
+        token = token[0]  # Извлекаем токен из кортежа
+    else:
+        print("Токен не найден!")
+        return
+
     date = {
-        "token":token
+        "token": token
     }
-    respons = requests.get(f"https://magnatri.pythonanywhere.com/api/get_messages", data = json.dumps(date), headers=headers)
-    a = respons.json()
-    print(a['message'])
+    respons = requests.get("http://127.0.0.1:3000/api/get_messages", data=json.dumps(date), headers=headers)
+
+    if respons.status_code == 200:
+        a = respons.json()
+        if isinstance(a, dict) and "message" in a:
+            print(a['message'])
+        elif isinstance(a, list):
+            for item in a:
+                print(item)
+        else:
+            print("Неизвестный формат ответа:", a)
+
+def search():
+    data = {
+        "name":"asd"
+    }
+    res = requests.post("http://127.0.0.1:3000/api/search",params=data)
+    print(res.json)
 
 def send_all_message():
     cursor.execute("SELECT * FROM send_message")
