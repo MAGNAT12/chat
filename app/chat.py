@@ -8,54 +8,53 @@ cursor = connect.cursor()
 
 headers = {"Content-Type": "application/json"}
 
-
 def chat_main(page: ft.Page):
     page.title = "Chat"
     page.theme_mode = "system"
 
-    # Fetch user details
     cursor.execute("SELECT name, token FROM users")
     user = cursor.fetchone()
+
     if not user:
         page.controls.clear()
         page.add(ft.Text("User not found. Please register first."))
         return
 
-    name_sender, token = user
-    message_field = ft.TextField(label="Message", expand=True)
+    search_field = ft.TextField(label="Search User", 
+    expand=True)
+    search_results = ft.Column()
 
-    def send_message(e):
-        message = message_field.value.strip()
-        if not message:
-            return
+    def search_users(e):
+        query = search_field.value.strip()
 
-        data = {
-            "name_sender": name_sender,
-            "name": "addf",
-            "message": message,
-            "token": token,
-        }
+        response = requests.post(
+        "http://127.0.0.1:3000/api/search",
+        json={"name":query}, 
+        headers=headers)
 
-        try:
-            response = requests.post(
-                "https://magnatri.pythonanywhere.com/api/send_message",
-                data=json.dumps(data),
-                headers=headers,
-            )
-            if response.status_code == 200:
-                cursor.execute("INSERT INTO send_message(name, messages) VALUES (?, ?)", (name_sender, message))
-                connect.commit()
-            else:
-                print(f"Error: {response.json()}")
-        except requests.RequestException as e:
-            print(f"Request failed: {e}")
+        if response.status_code == 200:
 
-    send_button = ft.ElevatedButton(text="Send", icon=ft.icons.SEND, on_click=send_message)
-    input_row = ft.Row([message_field, send_button], alignment=ft.MainAxisAlignment.CENTER)
+            results = response.json().get("users", [])
+            search_results.controls.clear()
+
+            for user in results:
+                search_results.controls.append(ft.Button(user['name']))
+            page.update()
+
+        else:
+            search_results.controls.clear()
+            search_results.controls.append(ft.Text("No users found"))
+            page.update()
+
+    search_field.on_change = search_users
 
     page.add(
         ft.Column(
-            [ft.Text("Chat Application", size=20), ft.Container(expand=True), input_row],
+            [
+                search_field,
+                search_results,
+                ft.Container(expand=True),
+            ],
             expand=True,
             alignment=ft.MainAxisAlignment.CENTER,
         )

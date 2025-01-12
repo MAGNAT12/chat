@@ -3,27 +3,35 @@ import sqlite3
 import requests
 import string
 import secrets
-from chat import chat_main
+from message import chat_main
 
-# Database connection
+
 connect = sqlite3.connect("user.db", check_same_thread=False)
 cursor = connect.cursor()
-
-# Create tables if they don't exist
 cursor.executescript("""
 CREATE TABLE IF NOT EXISTS users (
-    name TEXT,
-    token TEXT
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    token TEXT NOT NULL
 );
+
 CREATE TABLE IF NOT EXISTS send_message (
-    name TEXT,
-    messages TEXT
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    messages TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(name) REFERENCES users(name)
 );
+
 CREATE TABLE IF NOT EXISTS get_message (
-    name TEXT,
-    messages TEXT
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    messages TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(name) REFERENCES users(name)
 );
 """)
+
 connect.commit()
 
 headers = {"Content-Type": "application/json"}
@@ -32,18 +40,18 @@ headers = {"Content-Type": "application/json"}
 def main(page: ft.Page):
     page.title = "Chat"
     page.theme_mode = "system"
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.vertical_alignment = "center"
+    page.horizontal_alignment = "center"
 
     result = ft.Text()
 
-    # Check if user is already registered
     cursor.execute("SELECT name FROM users")
     user = cursor.fetchone()
 
     if user:
-        chat_main(page)  # Redirect to chat interface
+        chat_main(page)
     else:
-        # Registration Form
+
         def register(e):
             data = {
                 "name": Name.value,
@@ -52,17 +60,36 @@ def main(page: ft.Page):
             }
             try:
                 response = requests.post(
-                    "https://magnatri.pythonanywhere.com/api/regist",
+                    "http://192.168.1.104:3000/api/regist",
                     json=data,
                     headers=headers,
                 )
                 if response.status_code == 200:
                     token = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-                    cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (Name.value, token))
-                    connect.commit()
-                    chat_main(page)  # Redirect to chat interface
+                    data = {
+                        "name": Name.value,
+                        "gmail": Gmail.value,
+                        "password": Password.value,
+                        "token": token
+                    }
+                    response = requests.post(
+                    "http://192.168.1.104:3000/api/user",
+                    json=data,
+                    headers=headers
+                    )
+                    if response.status_code == 200:
+                        cursor.execute("INSERT INTO users(name, token) VALUES (?, ?)", (Name.value, token))
+                        connect.commit()
+                        a = response.json()
+                        print(a['message'])
+                        chat_main(page)
+
+                    else:
+                        print(a['message'])
+
                 else:
                     result.value = response.json().get("message", "Registration failed.")
+
             except requests.RequestException as e:
                 result.value = f"Error: {e}"
 

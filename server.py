@@ -125,7 +125,8 @@ class Get_messages(Resource):
             cursor.execute("SELECT name_sender, message, timestamp FROM mes WHERE name = ?", (name_sender,))
             messages = cursor.fetchall()
             if messages:
-                messages_list = [{'name_sender': msg[0], 'message': msg[1]} for msg in messages]
+                for msg in messages:
+                    messages_list = {'name_sender':msg[0], 'message':msg[1]}
                 return messages_list
             else:
                 return {'message': 'Сообщений не найдено'}, 400

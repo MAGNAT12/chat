@@ -83,9 +83,9 @@ def message(name, messages):
 
 def get():
     cursor.execute("SELECT token FROM users")
-    token = cursor.fetchone()  # fetchone возвращает кортеж (token,), поэтому нужно получить первый элемент
+    token = cursor.fetchone()  
     if token:
-        token = token[0]  # Извлекаем токен из кортежа
+        token = token[0]
     else:
         print("Токен не найден!")
         return
@@ -97,13 +97,7 @@ def get():
 
     if respons.status_code == 200:
         a = respons.json()
-        if isinstance(a, dict) and "message" in a:
-            print(a['message'])
-        elif isinstance(a, list):
-            for item in a:
-                print(item)
-        else:
-            print("Неизвестный формат ответа:", a)
+        print(a['name_sender'],":",a['message'])
 
 def search():
     data = {
@@ -163,5 +157,4 @@ if __name__ == "__main__":
             print("---------------")
         elif choice == "7":
             break
-
 
