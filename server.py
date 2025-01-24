@@ -168,6 +168,8 @@ class Search(Resource):
         args = parser.parse_args()
 
         query = args["name"].lower()
+        if query == "":
+            return {"message":"Введите име пользователь"}
 
         cursor.execute("SELECT name FROM users WHERE LOWER(name) LIKE ?", ('%' + query + '%',))
         results = cursor.fetchall()
