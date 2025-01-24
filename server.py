@@ -168,15 +168,18 @@ class Search(Resource):
         args = parser.parse_args()
 
         query = args["name"].lower()
+        if query == "":
+            return {"message":"Введите име пользователь"}
 
-        cursor.execute("SELECT name FROM users WHERE LOWER(name) LIKE ?", ('%' + query + '%',))
-        results = cursor.fetchall()
-
-        if results:
-            users = [{"name": user[0]} for user in results]
-            return {"users": users}, 200
         else:
-            return {"message": "Пользователи не найдены"}, 404
+            cursor.execute("SELECT name FROM users WHERE LOWER(name) LIKE ?", ('%' + query + '%',))
+            results = cursor.fetchall()
+
+            if results:
+                users = [{"name": user[0]} for user in results]
+                return {"users": users}, 200
+            else:
+                return {"message": "Пользователи не найдены"}, 404
 
 
 class Comands(Resource):  

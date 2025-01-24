@@ -38,12 +38,12 @@ headers = {'Content-Type': 'application/json'}
 
 def regist():
     date = {
-        "name":"addf",
-        "gmail":"asddf",
+        "name":"addsddfd",
+        "gmail":"awew",
         "password":"adf"
     }
 
-    respons = requests.post("https://magnatri.pythonanywhere.com/api/regist", data=json.dumps(date), headers=headers)
+    respons = requests.post("http://192.168.1.104:3000/api/regist", data=json.dumps(date), headers=headers)
     print(respons.json())
 
 
@@ -79,4 +79,4 @@ def search():
     res = requests.post("http://127.0.0.1:3000/api/search",json=data)
     a = res.json()
     print(a)
-search()
+regist()
